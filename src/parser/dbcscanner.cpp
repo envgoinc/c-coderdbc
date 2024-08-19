@@ -79,12 +79,6 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
     // New message line has been found
     if (lparser.IsMessageLine(sline))
     {
-      // if actual message, check DLC value for being max
-      if ((pMsg != nullptr) && (pMsg->DLC > dblist.maxDlcValue))
-      {
-        dblist.maxDlcValue = pMsg->DLC;
-      }
-
       // the message will be added only if pMsg is not nullptr
       AddMessage(pMsg);
 
@@ -98,6 +92,12 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
         // the message has invalid format so drop it and wait next one
         delete pMsg;
         pMsg = nullptr;
+      }
+
+      // if actual message, check DLC value for being max
+      if ((pMsg != nullptr) && (pMsg->DLC > dblist.maxDlcValue))
+      {
+        dblist.maxDlcValue = pMsg->DLC;
       }
     }
 

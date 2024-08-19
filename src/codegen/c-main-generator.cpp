@@ -879,4 +879,3 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter.Append();
   }
 }
-
