@@ -24,7 +24,7 @@ uint32_t MonGenerator::FillHeader(FileWriter& wr, std::vector<CiExpr_t*>& sigs,
   // with FMon_* signatures to call from unpack function
   wr.Append("#ifdef %s", aset.gen.usemon_def.c_str());
   wr.Append();
-  wr.Append("#include \"canmonitorutil.hpp\"");
+  wr.Append("#include <nv1_can_gen/src/canmonitorutil.hpp>");
   wr.Append("/*\n\
 This file contains the prototypes of all the functions that will be called\n\
 from each Unpack_*name* function to detect DBC related errors\n\

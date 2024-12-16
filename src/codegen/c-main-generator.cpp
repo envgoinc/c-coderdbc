@@ -110,7 +110,7 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter.Append(
     "// This file must define:\n"
     "// base monitor struct\n"
-    "#include \"canmonitorutil.hpp\"\n"
+    "#include <nv1_can_gen/src/canmonitorutil.hpp>\n"
     "\n"
   );
 
