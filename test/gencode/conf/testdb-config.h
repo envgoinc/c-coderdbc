@@ -51,7 +51,7 @@
 
 
 /* ------------------------------------------------------------------------- *
-  Note(!) that the "canmonitorutil.h" must be accessed in include path:
+  Note(!) that the "canmonitorutil.hpp" must be accessed in include path:
 
   This macro adds:
 
@@ -59,7 +59,7 @@
 
   - capture system tick in unpack function and save value to mon1 field
   to provide to user better missing frame detection code. For this case
-  user must provide function declared in canmonitorutil.h - GetSysTick()
+  user must provide function declared in canmonitorutil.hpp - GetSysTick()
   which may return 1ms uptime.
 
   - calling function FMon_***  (from 'fmon' driver) inside unpack function
@@ -91,8 +91,8 @@
   - "Checksum": constant marker word
 
   - "XOR8": type of method, this text will be passed to GetFrameHash
-  (canmonitorutil.h) function as is, the best use case is to define 'enum
-  DbcCanCrcMethods' in canmonitorutil.h file with all possible
+  (canmonitorutil.hpp) function as is, the best use case is to define 'enum
+  DbcCanCrcMethods' in canmonitorutil.hpp file with all possible
   checksum algorithms (e.g. XOR8, XOR4 etc)
 
   - "3": optional value that will be passed to GetFrameHash as integer value
@@ -109,18 +109,18 @@
 
 
 /* ------------------------------------------------------------------------- *
-  FMon handling model can be build in two ways: 
+  FMon handling model can be build in two ways:
 
-  1 - Default. In this case when specific frame unpack is called the 
+  1 - Default. In this case when specific frame unpack is called the
   specific FMon_{Frame name}_{driver name} functoin will be called.
   User's code scope has to define each of these functions. Each function is
   responsible for the error handling of one frame
 
-  2 - MONO. In this case there is only one function to perform any frame 
+  2 - MONO. In this case there is only one function to perform any frame
   monitoring. This function has to be implemented in the user's code scope.
   This function is named as FMon_MONO_{driver name}. It takes frame id
   which can be used for selection of the logic for a frame monitoring.
-  This mode costs a bit more in runtime but when you often edit you DBC and you 
+  This mode costs a bit more in runtime but when you often edit you DBC and you
   have more than one project it could be more maintanable (there is
   no necessity to replace source code)
 

@@ -19,7 +19,7 @@ class CiUtilGenerator {
   // the output of this function source files which contain:
   // - global TX and RX typedefs message struct
   // - function to Unpack incoming frame to dedicated RX message struct field
-  // - optional (through define in global "dbccodeconf.h") variable allocation in source files
+  // - optional (through define in global "dbccodeconf.hpp") variable allocation in source files
   //
   void Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd,
     const MsgsClassification& groups, const std::string& drvname);

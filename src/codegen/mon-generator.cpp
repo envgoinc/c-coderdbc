@@ -12,27 +12,24 @@ uint32_t MonGenerator::FillHeader(FileWriter& wr, std::vector<CiExpr_t*>& sigs,
   wr.Append("#pragma once");
   wr.Append();
 
-  wr.Append("#ifdef __cplusplus\nextern \"C\" {\n#endif");
-  wr.Append();
-
   wr.Append("// DBC file version");
   wr.Append("#define %s_FMON (%uU)", aset.gen.verhigh_def.c_str(), aset.gen.hiver);
   wr.Append("#define %s_FMON (%uU)", aset.gen.verlow_def.c_str(), aset.gen.lowver);
   wr.Append();
 
-  wr.Append("#include \"%s-config.h\"", aset.gen.drvname.c_str());
+  wr.Append("#include \"%s-config.hpp\"", aset.gen.drvname.c_str());
   wr.Append();
 
   // put diagmonitor ifdef selection for including @drv-fmon header
   // with FMon_* signatures to call from unpack function
   wr.Append("#ifdef %s", aset.gen.usemon_def.c_str());
   wr.Append();
-  wr.Append("#include \"canmonitorutil.h\"");
+  wr.Append("#include \"canmonitorutil.hpp\"");
   wr.Append("/*\n\
 This file contains the prototypes of all the functions that will be called\n\
 from each Unpack_*name* function to detect DBC related errors\n\
 It is the user responsibility to defined these functions in the\n\
-separated .c file. If it won't be done the linkage error will happen\n*/");
+separated .cpp file. If it won't be done the linkage error will happen\n*/");
   wr.Append();
 
   wr.Append("#ifdef %s_USE_MONO_FMON", aset.gen.DRVNAME.c_str());
@@ -77,8 +74,6 @@ separated .c file. If it won't be done the linkage error will happen\n*/");
 
   wr.Append("#endif // %s", aset.gen.usemon_def.c_str());
   wr.Append();
-
-  wr.Append("#ifdef __cplusplus\n}\n#endif");
 
   return 0;
 }

@@ -8,11 +8,11 @@ static const int32_t kTmpLen = 1024;
 
 static char _tmpb[kTmpLen];
 
-static const char* kLibDir = "/lib";
-static const char* kUsrDir = "/usr";
-static const char* kIncDir = "/inc";
-static const char* kConfDir = "/conf";
-static const char* kUtilDir = "/butl";
+static const char* kLibDir = "/";
+static const char* kUsrDir = "/";
+static const char* kIncDir = "/";
+static const char* kConfDir = "/";
+static const char* kUtilDir = "/";
 
 FsCreator::FsCreator()
 {
@@ -50,27 +50,27 @@ void FsCreator::Configure(const std::string& drvname, const std::string& outpath
   FS.gen.drvname = str_tolower(drvname);
 
   FS.file.core_h.dir = outpath;
-  FS.file.core_h.fname = FS.gen.drvname + ".h";
+  FS.file.core_h.fname = FS.gen.drvname + ".hpp";
   FS.file.core_h.fpath = FS.file.libdir + "/" + FS.file.core_h.fname;
 
   FS.file.core_c.dir = outpath;
-  FS.file.core_c.fname = FS.gen.drvname + ".c";
+  FS.file.core_c.fname = FS.gen.drvname + ".cpp";
   FS.file.core_c.fpath = FS.file.libdir + "/" + FS.file.core_c.fname;
 
   FS.file.util_h.dir = outpath;
-  FS.file.util_h.fname = FS.gen.drvname + "-binutil" + ".h";
+  FS.file.util_h.fname = FS.gen.drvname + "-binutil" + ".hpp";
   FS.file.util_h.fpath = FS.file.utildir + "/" + FS.file.util_h.fname;
 
   FS.file.util_c.dir = outpath;
-  FS.file.util_c.fname = FS.gen.drvname + "-binutil" + ".c";
+  FS.file.util_c.fname = FS.gen.drvname + "-binutil" + ".cpp";
   FS.file.util_c.fpath = FS.file.utildir + "/" + FS.file.util_c.fname;
 
   FS.file.fmon_h.dir = outpath;
-  FS.file.fmon_h.fname = FS.gen.drvname + "-fmon.h";
+  FS.file.fmon_h.fname = FS.gen.drvname + "-fmon.hpp";
   FS.file.fmon_h.fpath = FS.file.libdir + "/" + FS.file.fmon_h.fname;
 
   FS.file.fmon_c.dir = outpath;
-  FS.file.fmon_c.fname = FS.gen.drvname + "-fmon.c";
+  FS.file.fmon_c.fname = FS.gen.drvname + "-fmon.cpp";
   FS.file.fmon_c.fpath = FS.file.usrdir + "/" + FS.file.fmon_c.fname;
 
   snprintf(_tmpb, kTmpLen, "%s_USE_BITS_SIGNAL", FS.gen.DRVNAME.c_str());

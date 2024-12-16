@@ -130,10 +130,10 @@ void CoderApp::GenerateCode()
       fscreator.FS.file.util_c.dir = fscreator.FS.file.utildir;
       fscreator.FS.file.util_h.dir = fscreator.FS.file.utildir;
 
-      fscreator.FS.file.util_h.fname = str_tolower(fscreator.FS.gen.drvname + "-binutil.h");
+      fscreator.FS.file.util_h.fname = str_tolower(fscreator.FS.gen.drvname + "-binutil.hpp");
       fscreator.FS.file.util_h.fpath = fscreator.FS.file.utildir + "/" + fscreator.FS.file.util_h.fname;
 
-      fscreator.FS.file.util_c.fname = str_tolower(fscreator.FS.gen.drvname + "-binutil.c");
+      fscreator.FS.file.util_c.fname = str_tolower(fscreator.FS.gen.drvname + "-binutil.cpp");
       fscreator.FS.file.util_c.fpath = fscreator.FS.file.utildir + "/" + fscreator.FS.file.util_c.fname;
 
       MsgsClassification groups;
@@ -207,8 +207,8 @@ void CoderApp::PrintHelp()
   std::cout << "   \t\t '-rw' option enables rewriting: all source files previously generated" << std::endl;
   std::cout << "   \t\t will be replaced by new ones" << std::endl;
   std::cout << "   -noconfig:\t no {drivername}-config and dbccodeconfig generation" << std::endl;
-  std::cout << "   -noinc:\t no canmonitorutil.h generation" << std::endl;
-  std::cout << "   -nofmon:\t no ***-fmon.c generation" << std::endl;
+  std::cout << "   -noinc:\t no canmonitorutil.hpp generation" << std::endl;
+  std::cout << "   -nofmon:\t no ***-fmon.cpp generation" << std::endl;
   std::cout << std::endl;
 
   std::cout << "examples:" << std::endl;

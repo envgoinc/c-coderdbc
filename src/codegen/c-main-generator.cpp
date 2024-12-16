@@ -24,7 +24,7 @@ const char* extend_func_body =
   "// n+1 bits where n is the largest signed signal width. For example if\n"
   "// the most wide signed signal has a width of 31 bits you need to set\n"
   "// bitext_t as int32_t and ubitext_t as uint32_t\n"
-  "// Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
+  "// Defined these typedefs in @dbccodeconf.hpp or locally in 'dbcdrvname'-config.hpp\n"
   "static bitext_t %s(ubitext_t val, uint8_t bits)\n"
   "{\n"
   "  ubitext_t const m = 1u << (bits - 1);\n"
@@ -66,10 +66,10 @@ void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd
 
   if (!fsd.gen.no_config)
   {
-    // 6 step is to print template for drv-config.h
+    // 6 step is to print template for drv-config.hpp
     Gen_ConfigHeader();
 
-    // 8 step is to print dbccodeconf.h template
+    // 8 step is to print dbccodeconf.hpp template
     Gen_DbcCodeConf();
   }
 
@@ -93,8 +93,6 @@ void CiMainGenerator::Gen_MainHeader()
 
   fwriter.Append("#pragma once");
   fwriter.Append();
-  fwriter.Append("#ifdef __cplusplus\nextern \"C\" {\n#endif");
-  fwriter.Append();
   fwriter.Append("#include <stdint.h>");
   fwriter.Append();
 
@@ -104,7 +102,7 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter.Append();
 
   fwriter.Append("// include current dbc-driver compilation config");
-  fwriter.Append("#include \"%s-config.h\"", fdesc->gen.drvname.c_str());
+  fwriter.Append("#include \"%s-config.hpp\"", fdesc->gen.drvname.c_str());
   fwriter.Append();
 
   fwriter.Append("#ifdef %s", fdesc->gen.usemon_def.c_str());
@@ -112,7 +110,7 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter.Append(
     "// This file must define:\n"
     "// base monitor struct\n"
-    "#include \"canmonitorutil.h\"\n"
+    "#include \"canmonitorutil.hpp\"\n"
     "\n"
   );
 
@@ -169,10 +167,7 @@ void CiMainGenerator::Gen_MainHeader()
     fwriter.Append("#define %s_DLC (%uU)", m.Name.c_str(), m.DLC);
     fwriter.Append("#define %s_CANID (%#xU)", m.Name.c_str(), m.MsgID);
 
-    if (m.Cycle > 0)
-    {
-      fwriter.Append("#define %s_CYC (%dU)", m.Name.c_str(), m.Cycle);
-    }
+    fwriter.Append("#define %s_CYC (%dU)", m.Name.c_str(), m.Cycle);
 
     size_t max_sig_name_len = 27;
 
@@ -328,8 +323,6 @@ void CiMainGenerator::Gen_MainHeader()
     fwriter.Append();
   }
 
-  fwriter.Append("#ifdef __cplusplus\n}\n#endif");
-
   // save fwrite cached text to file
   fwriter.Flush(fdesc->file.core_h.fpath);
 }
@@ -362,7 +355,7 @@ void CiMainGenerator::Gen_MainSource()
     "// Function prototypes to be called each time CAN frame is unpacked\n"
     "// FMon function may detect RC, CRC or DLC violation\n");
 
-  fwriter.Append("#include \"%s-fmon.h\"", fdesc->gen.drvname.c_str());
+  fwriter.Append("#include \"%s-fmon.hpp\"", fdesc->gen.drvname.c_str());
   fwriter.Append();
 
   fwriter.Append("#endif // %s", fdesc->gen.usemon_def.c_str());
@@ -370,7 +363,7 @@ void CiMainGenerator::Gen_MainSource()
   fwriter.Append("// This macro guard for the case when you need to enable");
   fwriter.Append("// using diag monitors but there is no necessity in proper");
   fwriter.Append("// SysTick provider. For providing one you need define macro");
-  fwriter.Append("// before this line - in dbccodeconf.h");
+  fwriter.Append("// before this line - in dbccodeconf.hpp");
   fwriter.Append("");
   fwriter.Append("#ifndef GetSystemTick");
   fwriter.Append("#define GetSystemTick() (0u)");
@@ -452,7 +445,7 @@ void CiMainGenerator::Gen_ConfigHeader()
   ConfigGenerator confgen;
   confgen.FillHeader(fwriter, fdesc->gen);
 
-  fwriter.Flush(fdesc->file.confdir + '/' + fdesc->gen.drvname + "-config.h");
+  fwriter.Flush(fdesc->file.confdir + '/' + fdesc->gen.drvname + "-config.hpp");
 }
 
 void CiMainGenerator::Gen_FMonHeader()
@@ -474,10 +467,6 @@ void CiMainGenerator::Gen_CanMonUtil()
   fwriter.Append("#pragma once");
   fwriter.Append("");
   fwriter.Append("#include <stdint.h>");
-  fwriter.Append("");
-  fwriter.Append("#ifdef __cplusplus");
-  fwriter.Append("extern \"C\" {");
-  fwriter.Append("#endif");
   fwriter.Append("");
   fwriter.Append("// declare here all availible checksum algorithms");
   fwriter.Append("typedef enum");
@@ -520,12 +509,8 @@ void CiMainGenerator::Gen_CanMonUtil()
   fwriter.Append("");
   fwriter.Append("} FrameMonitor_t;");
   fwriter.Append("");
-  fwriter.Append("#ifdef __cplusplus");
-  fwriter.Append("}");
-  fwriter.Append("#endif");
-  fwriter.Append("");
 
-  fwriter.Flush(fdesc->file.incdir + '/' + "canmonitorutil.h");
+  fwriter.Flush(fdesc->file.incdir + '/' + "canmonitorutil.hpp");
 }
 
 void CiMainGenerator::Gen_DbcCodeConf()
@@ -562,7 +547,7 @@ void CiMainGenerator::Gen_DbcCodeConf()
   fwriter.Append("// #define GetFrameHash(a,b,c,d,e) __get_hash__(a,b,c,d,e)");
   fwriter.Append("");
 
-  fwriter.Flush(fdesc->file.confdir + '/' + "dbccodeconf.h");
+  fwriter.Flush(fdesc->file.confdir + '/' + "dbccodeconf.hpp");
 }
 
 void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bits, size_t padwidth)

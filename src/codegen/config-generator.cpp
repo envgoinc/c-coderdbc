@@ -5,7 +5,7 @@ void ConfigGenerator::FillHeader(FileWriter& wr, const GenDescriptor_t& gsett)
   wr.Append("#pragma once");
   wr.Append("");
   wr.Append("/* include common dbccode configurations */");
-  wr.Append("#include \"dbccodeconf.h\"");
+  wr.Append("#include <nv1_can_gen/src/dbccodeconf.hpp>");
   wr.Append("");
   wr.Append("");
   wr.Append("/* ------------------------------------------------------------------------- *");
@@ -28,7 +28,7 @@ void ConfigGenerator::FillHeader(FileWriter& wr, const GenDescriptor_t& gsett)
   wr.Append("    u8 Data[8] (CAN Frame payload data)");
   wr.Append("    u8 IDE (CAN Frame Extended (1) / Standard (0) ID type)");
   wr.Append("");
-  wr.Append("  This struct definition have to be placed (or be included) in dbccodeconf.h */");
+  wr.Append("  This struct definition have to be placed (or be included) in dbccodeconf.hpp */");
   wr.Append("");
   wr.Append("/* #define %s */", gsett.usesruct_def.c_str());
   wr.Append(2);
@@ -43,7 +43,7 @@ void ConfigGenerator::FillHeader(FileWriter& wr, const GenDescriptor_t& gsett)
   wr.Append("  1. All the '_ro' fields will have a pair field with '_phys' postfix.");
   wr.Append("  If only offset != 0 is true then the type of '_phys' signal is the same");
   wr.Append("  as '_ro' signal. In other case the type will be @sigfloat_t which");
-  wr.Append("  have to be defined in user dbccodeconf.h");
+  wr.Append("  have to be defined in user dbccodeconf.hpp");
   wr.Append("");
   wr.Append("  2. In pack function '_ro' signal will be rewritten by '_phys' signal, which");
   wr.Append("  requires from user to use ONLY '_phys' signal for packing frame");
@@ -55,7 +55,7 @@ void ConfigGenerator::FillHeader(FileWriter& wr, const GenDescriptor_t& gsett)
   wr.Append(2);
 
   wr.Append("/* ------------------------------------------------------------------------- *");
-  wr.Append("  Note(!) that the \"canmonitorutil.h\" must be accessed in include path:");
+  wr.Append("  Note(!) that the \"canmonitorutil.hpp\" must be accessed in include path:");
   wr.Append("");
   wr.Append("  This macro adds:");
   wr.Append("");
@@ -63,7 +63,7 @@ void ConfigGenerator::FillHeader(FileWriter& wr, const GenDescriptor_t& gsett)
   wr.Append("");
   wr.Append("  - capture system tick in unpack function and save value to mon1 field");
   wr.Append("  to provide to user better missing frame detection code. For this case");
-  wr.Append("  user must provide function declared in canmonitorutil.h - GetSysTick()");
+  wr.Append("  user must provide function declared in canmonitorutil.hpp - GetSysTick()");
   wr.Append("  which may return 1ms uptime.");
   wr.Append("");
   wr.Append("  - calling function FMon_***  (from 'fmon' driver) inside unpack function");
@@ -95,8 +95,8 @@ void ConfigGenerator::FillHeader(FileWriter& wr, const GenDescriptor_t& gsett)
   wr.Append("  - \"Checksum\": constant marker word");
   wr.Append("");
   wr.Append("  - \"XOR8\": type of method, this text will be passed to GetFrameHash");
-  wr.Append("  (canmonitorutil.h) function as is, the best use case is to define 'enum");
-  wr.Append("  DbcCanCrcMethods' in canmonitorutil.h file with all possible");
+  wr.Append("  (canmonitorutil.hpp) function as is, the best use case is to define 'enum");
+  wr.Append("  DbcCanCrcMethods' in canmonitorutil.hpp file with all possible");
   wr.Append("  checksum algorithms (e.g. XOR8, XOR4 etc)");
   wr.Append("");
   wr.Append("  - \"3\": optional value that will be passed to GetFrameHash as integer value");

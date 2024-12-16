@@ -110,15 +110,12 @@ void CiUtilGenerator::PrintHeader()
   tof.Append("#pragma once");
   tof.Append();
 
-  tof.Append(openguard);
-  tof.Append();
-
   // include common dbc code config header
-  tof.Append("#include \"dbccodeconf.h\"");
+  tof.Append("#include <nv1_can_gen/src/dbccodeconf.hpp>");
   tof.Append();
 
   // include c-main driver header
-  tof.Append("#include \"%s.h\"", file_drvname.c_str());
+  tof.Append("#include \"%s.hpp\"", file_drvname.c_str());
   tof.Append();
 
 
@@ -189,8 +186,6 @@ void CiUtilGenerator::PrintHeader()
     tof.Append("#endif // __DEF_%s__", gdesc->DRVNAME.c_str());
     tof.Append();
   }
-
-  tof.Append(closeguard);
 
   tof.Flush(fdesc->util_h.fpath);
 }

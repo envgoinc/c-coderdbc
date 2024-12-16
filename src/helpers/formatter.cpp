@@ -164,6 +164,7 @@ std::string prt_double(double value, size_t precision, bool usedot)
     {
       s += ".0";
     }
+    s += "f";
 
     return s;
   }
@@ -197,6 +198,7 @@ std::string prt_double(double value, size_t precision, bool usedot)
     // xxx.x(x)
     s.resize(dotpos + addtail + 1);
   }
+  s += "f";
 
   return s;
 }
