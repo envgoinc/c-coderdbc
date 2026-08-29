@@ -9,5 +9,5 @@ int main(int argc, char* argv[])
   OptionsParser parser;
   auto opts = parser.GetOptions(argc, argv);
   CoderApp app(opts);
-  app.Run();
+  return app.Run();
 }

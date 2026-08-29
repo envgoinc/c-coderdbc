@@ -13,11 +13,12 @@ class CoderApp {
   CoderApp(const OptionsParser::GenOptions& params) : Params(params) {}
 
   /// @brief Main generation process
-  void Run();
+  /// @return process exit code: 0 on success, 1 if generation was refused
+  int Run();
 
  private:
   bool AreParamsValid();
-  void GenerateCode();
+  int GenerateCode();
   void PrintHelp();
 
   const OptionsParser::GenOptions& Params;

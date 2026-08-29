@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <set>
 #include <regex>
+#include <map>
 #include "helpers/formatter.h"
 #include "mon-generator.h"
 #include "config-generator.h"
@@ -82,7 +83,8 @@ void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd
 
 void CiMainGenerator::Gen_MainHeader()
 {
-  std::set<std::string> passed_sigs;
+  // Name -> the definition whose macro was emitted, and the frame it came from.
+  std::map<std::string, std::pair<const SignalDescriptor_t*, std::string>> passed_sigs;
 
   // write comment start text
   if (fdesc->gen.start_info.size() > 0)
@@ -184,11 +186,39 @@ void CiMainGenerator::Gen_MainHeader()
 
       if (!s.IsSimpleSig)
       {
-        if (passed_sigs.find(s.Name) == passed_sigs.end())
+        auto prev = passed_sigs.find(s.Name);
+
+        if (prev == passed_sigs.end())
         {
           // print signal macroses only it was not printed before
           fwriter.Append(sigprt.PrintPhysicalToRaw(&s, fdesc->gen.DRVNAME));
-          passed_sigs.insert(s.Name);
+          passed_sigs[s.Name] = std::make_pair(&s, m.Name);
+        }
+        else if ((prev->second.first->Factor != s.Factor) || (prev->second.first->Offset != s.Offset))
+        {
+          // Name carries the "_ro" the parser appended; report what the DBC actually says.
+          std::string dbcname = s.Name;
+
+          if (dbcname.size() > 3 && dbcname.compare(dbcname.size() - 3, 3, "_ro") == 0)
+          {
+            dbcname.erase(dbcname.size() - 3);
+          }
+
+          // The macro already emitted encodes the other definition's scaling, and this
+          // signal will convert through it. Nothing downstream can detect that.
+          char buff[512];
+          snprintf(buff, sizeof(buff),
+            "%s: %s uses (factor %g, offset %g) but %s already emitted (factor %g, offset %g)",
+            m.Name.c_str(), dbcname.c_str(), s.Factor, s.Offset,
+            prev->second.second.c_str(), prev->second.first->Factor, prev->second.first->Offset);
+          ScalingConflicts.push_back(std::string(buff));
+
+          std::cerr << "error: conflicting scaling for signal '" << dbcname << "'" << std::endl
+                    << "  " << prev->second.second << " defines it as factor " << prev->second.first->Factor
+                    << ", offset " << prev->second.first->Offset << " (macro emitted from this one)" << std::endl
+                    << "  " << m.Name << " defines it as factor " << s.Factor
+                    << ", offset " << s.Offset << " (would convert through the macro above)" << std::endl
+                    << "  give one of them a distinct signal name" << std::endl;
         }
       }
 

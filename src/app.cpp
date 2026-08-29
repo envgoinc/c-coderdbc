@@ -14,22 +14,21 @@
 #include <codegen/version.h>
 #include <helpers/formatter.h>
 
-void CoderApp::Run()
+int CoderApp::Run()
 {
   std::cout << "coderdbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
 
   if (AreParamsValid())
   {
-    GenerateCode();
+    return GenerateCode();
   }
-  else
-  {
-    PrintHelp();
-  }
+
+  PrintHelp();
+  return 1;
 }
 
 /// @brief Main generation process
-void CoderApp::GenerateCode()
+int CoderApp::GenerateCode()
 {
   DbcScanner scanner;
   CiMainGenerator cigen;
@@ -46,7 +45,7 @@ void CoderApp::GenerateCode()
   if (std::filesystem::exists(Params.dbc.first) == false)
   {
     std::cout << "DBC file is not exists!" << std::endl;
-    return;
+    return 1;
   }
 
   reader.open(Params.dbc.first);
@@ -78,6 +77,22 @@ void CoderApp::GenerateCode()
   if (ret)
   {
     cigen.Generate(scanner.dblist, fscreator.FS);
+
+    if (cigen.ScalingConflicts.size() > 0)
+    {
+      // The emitted code converts these through another definition's macro, so it
+      // compiles and runs and is quietly wrong. Refuse rather than ship it.
+      std::cerr << std::endl
+                << "refusing to generate: " << cigen.ScalingConflicts.size()
+                << " signal name(s) carry more than one scaling in this DBC" << std::endl;
+
+      for (size_t i = 0; i < cigen.ScalingConflicts.size(); i++)
+      {
+        std::cerr << "  " << cigen.ScalingConflicts[i] << std::endl;
+      }
+
+      return 1;
+    }
   }
   else
   {
@@ -179,6 +194,8 @@ void CoderApp::GenerateCode()
       ciugen.Generate(scanner.dblist, fscreator.FS, groups, Params.drvname.first);
     }
   }
+
+  return 0;
 }
 
 /// @brief Checks if all mandatory configuration parameters are provided

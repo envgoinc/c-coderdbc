@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 #include <memory>
+#include <vector>
+#include <string>
+#include <map>
 #include "c-sigprinter.h"
 #include "filewriter.h"
 #include "../types/message.h"
@@ -10,6 +13,10 @@
 
 class CiMainGenerator {
  public:
+  // Signals sharing a name but not a scaling: only one conversion macro is emitted
+  // per name, so every other definition silently converts through the wrong one.
+  std::vector<std::string> ScalingConflicts;
+
   void Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd);
 
  private:
