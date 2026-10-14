@@ -379,7 +379,18 @@ void CiMainGenerator::Gen_MainSource()
   fwriter.Append("#endif");
   fwriter.Append();
 
-  fwriter.Append(extend_func_body, ext_sig_func_name), 1;
+  // WriteUnpackBody uses sign extension only for signed wire signals in
+  // nonempty frames. A negative physical offset alone does not require it.
+  const bool needs_sign_extension = std::any_of(sigprt.sigs_expr.begin(), sigprt.sigs_expr.end(),
+    [](const CiExpr_t* expr)
+  {
+    return expr->msg.frameNotEmpty && std::any_of(expr->msg.Signals.begin(), expr->msg.Signals.end(),
+      [](const SignalDescriptor_t& sig) { return sig.Signed; });
+  });
+  if (needs_sign_extension)
+  {
+    fwriter.Append(extend_func_body, ext_sig_func_name);
+  }
 
   // for each message 3 functions must be defined - 1 unpack function,
   // 2: pack with raw signature

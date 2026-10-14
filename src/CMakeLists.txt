@@ -98,3 +98,27 @@ foreach(mode float double raw)
   endif()
   gtest_discover_tests(rounding_${mode}_test TEST_PREFIX "${mode}.")
 endforeach()
+
+
+# An unsigned wire signal may still have a signed physical range. Neither it
+# nor an empty frame should cause an unused sign-extension helper to be emitted.
+set(unsigned_dir "${CMAKE_CURRENT_BINARY_DIR}/unsigned")
+file(MAKE_DIRECTORY "${unsigned_dir}")
+configure_file(tests/unsigned-config.hpp "${unsigned_dir}/unsigned-config.hpp" COPYONLY)
+add_custom_command(
+  OUTPUT "${unsigned_dir}/unsigned.cpp" "${unsigned_dir}/unsigned.hpp"
+  COMMAND $<TARGET_FILE:coderdbc>
+    -dbc "${CMAKE_CURRENT_SOURCE_DIR}/../test/unsigned.dbc"
+    -out "${unsigned_dir}" -drvname unsigned -rw -noconfig -noinc -nofmon
+  DEPENDS coderdbc "${CMAKE_CURRENT_SOURCE_DIR}/../test/unsigned.dbc"
+  VERBATIM
+)
+add_executable(unsigned_test tests/unsigned-test.cpp "${unsigned_dir}/unsigned.cpp")
+target_include_directories(unsigned_test PRIVATE "${unsigned_dir}")
+target_link_libraries(unsigned_test PRIVATE GTest::gtest_main)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(unsigned_test PRIVATE -Wunused-function -Werror=unused-function)
+elseif(MSVC)
+  target_compile_options(unsigned_test PRIVATE /we4505)
+endif()
+gtest_discover_tests(unsigned_test)
