@@ -73,7 +73,11 @@ std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const
 
   if (sig->IsDoubleSig)
   {
-    retstr += StrPrint("(((x) - (%s)) / (%s)) )\n", prtOffset.c_str(), prtFactor.c_str());
+    // Quantize before the integer cast; truncation can lose one count even
+    // for values on the DBC grid (for example, 48.1f / 0.1f < 481).
+    // std::round preserves the expression's float/double precision and rounds
+    // halfway cases away from zero without depending on the rounding mode.
+    retstr += StrPrint("std::round(((x) - (%s)) / (%s)) )\n", prtOffset.c_str(), prtFactor.c_str());
   }
   else
   {

@@ -75,3 +75,28 @@ Help information with main instructions about using the tool will be printed
 ## generation options
 
   There are several available generation option, use '-help' option for details
+
+
+## Physical signal conversion
+
+With `<DRIVER>_USE_SIGFLOAT` enabled, pack functions read `_phys` fields and
+replace the corresponding `_ro` fields. Unpack functions populate both.
+For signals with a fractional factor or offset, physical-to-raw conversion
+rounds to the nearest integer, with halfway values rounded away from zero.
+For example, a physical value of `48.1f` with a `0.1` factor encodes as 481,
+and `-12.36f` encodes as -124. Integer-only scaling retains its existing behavior.
+Generated C++ headers include `<cmath>` for the `std::round` float/double overloads.
+This also applies to explicit calls to the generated `_toS` macros.
+
+Callers must supply finite physical values whose rounded raw values fit the
+signal's bit width and signedness. Conversion does not clamp values or map NaN,
+infinity, or out-of-range values to application-specific unavailable codes.
+Handle those cases before packing. With `USE_SIGFLOAT` disabled, packing
+continues to use the raw fields directly.
+
+The CTest suite generates a codec from `test/rounding.dbc` and checks physical
+packing with both `float` and `double`, plus raw packing without `USE_SIGFLOAT`:
+
+```sh
+ctest --test-dir build --output-on-failure
+```

@@ -46,7 +46,11 @@ void ConfigGenerator::FillHeader(FileWriter& wr, const GenDescriptor_t& gsett)
   wr.Append("  have to be defined in user dbccodeconf.hpp");
   wr.Append("");
   wr.Append("  2. In pack function '_ro' signal will be rewritten by '_phys' signal, which");
-  wr.Append("  requires from user to use ONLY '_phys' signal for packing frame");
+  wr.Append("  requires from user to use ONLY '_phys' signal for packing frame.");
+  wr.Append("  Floating-point conversions round to the nearest raw integer, with halfway");
+  wr.Append("  values rounded away from zero. Integer-only conversions are unchanged.");
+  wr.Append("  The caller must validate finite values and the signal's raw range, and");
+  wr.Append("  handle application-specific unavailable codes before packing.");
   wr.Append("");
   wr.Append("  3. In unpack function '_phys' signal will be written by '_ro' signal.");
   wr.Append("  User have to use '_phys' signal to read physical value. */");

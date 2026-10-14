@@ -94,6 +94,7 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter.Append("#pragma once");
   fwriter.Append();
   fwriter.Append("#include <stdint.h>");
+  fwriter.Append("#include <cmath>");
   fwriter.Append();
 
   fwriter.Append("// DBC file version");

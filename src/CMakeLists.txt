@@ -68,3 +68,33 @@ target_include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../test/gencode/lib
   ${CMAKE_CURRENT_SOURCE_DIR}/../test/gencode/inc
 )
+
+
+# Exercise actual generated conversions, not a copy of the generator's formula.
+set(rounding_dir "${CMAKE_CURRENT_BINARY_DIR}/rounding")
+file(MAKE_DIRECTORY "${rounding_dir}")
+configure_file(tests/rounding-config.hpp "${rounding_dir}/rounding-config.hpp" COPYONLY)
+add_custom_command(
+  OUTPUT "${rounding_dir}/rounding.cpp" "${rounding_dir}/rounding.hpp"
+  COMMAND $<TARGET_FILE:coderdbc>
+    -dbc "${CMAKE_CURRENT_SOURCE_DIR}/../test/rounding.dbc"
+    -out "${rounding_dir}" -drvname rounding -rw -noconfig -noinc -nofmon
+  DEPENDS coderdbc "${CMAKE_CURRENT_SOURCE_DIR}/../test/rounding.dbc"
+  VERBATIM
+)
+add_custom_target(rounding_codegen
+  DEPENDS "${rounding_dir}/rounding.cpp" "${rounding_dir}/rounding.hpp")
+foreach(mode float double raw)
+  add_executable(rounding_${mode}_test
+    tests/rounding-test.cpp "${rounding_dir}/rounding.cpp")
+  add_dependencies(rounding_${mode}_test rounding_codegen)
+  target_include_directories(rounding_${mode}_test PRIVATE "${rounding_dir}")
+  target_link_libraries(rounding_${mode}_test PRIVATE GTest::gtest_main)
+  if(mode STREQUAL "raw")
+    target_compile_definitions(rounding_${mode}_test PRIVATE ROUNDING_TEST_TYPE=float)
+  else()
+    target_compile_definitions(rounding_${mode}_test PRIVATE
+      ROUNDING_USE_SIGFLOAT ROUNDING_TEST_TYPE=${mode})
+  endif()
+  gtest_discover_tests(rounding_${mode}_test TEST_PREFIX "${mode}.")
+endforeach()
