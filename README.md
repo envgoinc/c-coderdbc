@@ -14,7 +14,7 @@ Coderdbc is a CLI utility for generating C code from DBC CAN matrix files
 For building project you need to have cmake and c++ development toolkit in your system
 1 download source code:
 ```sh
-git clone https://github.com/astand/c-coderdbc.git coderdbc
+git clone https://github.com/envgoinc/c-coderdbc.git coderdbc
 ```
 Go to the source code directory:
 ```sh
