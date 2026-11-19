@@ -8,6 +8,12 @@
 #include <algorithm>
 #include <set>
 #include <regex>
+#include <cmath>
+#include <vector>
+#include <map>
+#include <locale>
+#include <iomanip>
+#include <sstream>
 #include "helpers/formatter.h"
 #include "mon-generator.h"
 #include "config-generator.h"
@@ -30,6 +36,55 @@ const char* extend_func_body =
   "  ubitext_t const m = 1u << (bits - 1);\n"
   "  return (val ^ m) - m;\n"
   "}\n\n";
+
+// A DBC range value as a C literal: an integer when it is whole, otherwise a double constant in
+// the shortest form that reads back as the same double, so a tiny range such as 1e-10 does not
+// round to 0 and a value float cannot hold (16777216.5) keeps its precision.
+static std::string PrintRangeValue(double value)
+{
+  if (std::floor(value) == value && std::fabs(value) < 9007199254740992.0)
+  {
+    return std::string(StrPrint("%lld", static_cast<long long>(value)));
+  }
+
+  std::string text;
+
+  for (int precision = 1; precision <= 17; precision++)
+  {
+    std::ostringstream out;
+    out.imbue(std::locale::classic());
+    out << std::setprecision(precision) << value;
+    text = out.str();
+
+    std::istringstream in(text);
+    in.imbue(std::locale::classic());
+    double parsed = 0;
+    in >> parsed;
+
+    if (parsed == value)
+    {
+      break;
+    }
+  }
+
+  if (text.find_first_of(".eE") == std::string::npos)
+  {
+    text += ".0";  // a floating literal, not an integer that may not fit
+  }
+
+  return text;
+}
+
+// The DBC name of a signal: a scaled signal's field carries a "_ro" suffix, but its range is physical.
+static std::string DbcSignalName(const SignalDescriptor_t& sig)
+{
+  return sig.IsSimpleSig ? sig.Name : sig.Name.substr(0, sig.Name.size() - 3);
+}
+
+static bool HasRange(const SignalDescriptor_t& sig)
+{
+  return !(sig.MinValue == 0 && sig.MaxValue == 0);  // [0|0]: the DBC convention for no range
+}
 
 void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd)
 {
@@ -152,6 +207,30 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter.Append("#endif");
   fwriter.Append(2);
 
+  // <Message>_<Signal> range names, and the message.signal pairs that make each one. Two pairs can
+  // flatten to the same name (signal B_C in A, signal C in A_B); such a name is not emitted.
+  // Names this header already defines that a range name could equal: value-table defines
+  // (<Signal>_<Message>_<Value>, #ifndef-guarded) and the version defines (VER_<DRV>_MIN is the
+  // minor version). A range define with one of them would silently replace it, so it is not emitted.
+  std::map<std::string, std::vector<std::string>> rangeOwners;
+  std::set<std::string> takenNames = { fdesc->gen.verhigh_def, fdesc->gen.verlow_def };
+
+  for (const auto* expr : sigprt.sigs_expr)
+  {
+    for (const auto& sig : expr->msg.Signals)
+    {
+      if (HasRange(sig))
+      {
+        rangeOwners[expr->msg.Name + "_" + DbcSignalName(sig)].push_back(expr->msg.Name + "." + DbcSignalName(sig));
+      }
+
+      for (const auto& value : sig.ValDefs.vpairs)
+      {
+        takenNames.insert(sig.Name + "_" + expr->msg.Name + "_" + value.first);
+      }
+    }
+  }
+
   for (size_t num = 0u; num < sigprt.sigs_expr.size(); num++)
   {
     // write message typedef s and additional expressions
@@ -169,6 +248,50 @@ void CiMainGenerator::Gen_MainHeader()
     fwriter.Append("#define %s_CANID (%#xU)", m.Name.c_str(), m.MsgID);
 
     fwriter.Append("#define %s_CYC (%dU)", m.Name.c_str(), m.Cycle);
+
+    // Physical range of each signal from the DBC [min|max], as <Message>_<Signal>_MIN/_MAX.
+    for (const auto& sig : m.Signals)
+    {
+      if (!HasRange(sig))
+      {
+        continue;
+      }
+
+      const std::string dbcName = DbcSignalName(sig);
+      const std::string rangeName = m.Name + "_" + dbcName;
+      const std::vector<std::string>& owners = rangeOwners[rangeName];
+      std::string clash;
+
+      if (owners.size() > 1)
+      {
+        for (const auto& owner : owners)
+        {
+          clash += (clash.empty() ? "the name is shared by " : ", ") + owner;
+        }
+      }
+      else if (takenNames.count(rangeName + "_MIN") || takenNames.count(rangeName + "_MAX"))
+      {
+        clash = "another generated define (value table or version) has the name";
+      }
+
+      if (!clash.empty())
+      {
+        // A use fails to compile instead of silently getting another value.
+        fwriter.Append("// %s_MIN/_MAX not emitted: %s", rangeName.c_str(), clash.c_str());
+
+        if (owners.front() == m.Name + "." + dbcName)
+        {
+          std::cerr << "coderdbc: range defines " << rangeName << "_MIN/_MAX not emitted: " << clash << std::endl;
+        }
+
+        continue;
+      }
+
+      const std::string minText = PrintRangeValue(sig.MinValue);
+      const std::string maxText = PrintRangeValue(sig.MaxValue);
+      fwriter.Append("#define %s_MIN (%s)", rangeName.c_str(), minText.c_str());
+      fwriter.Append("#define %s_MAX (%s)", rangeName.c_str(), maxText.c_str());
+    }
 
     size_t max_sig_name_len = 27;
 

@@ -74,3 +74,21 @@ TEST(SignalRounding, TenthsRoundTrip)
     expect_eq(ROUNDING_Current_ro_toS(physical), raw);
   }
 }
+
+TEST(SignalRounding, FractionalRangeFromDbc)
+{
+  EXPECT_FLOAT_EQ(Rounding_Voltage_MIN, 0.0f);
+  EXPECT_FLOAT_EQ(Rounding_Voltage_MAX, 6553.5f);
+  EXPECT_FLOAT_EQ(Rounding_Current_MIN, -3276.8f);
+  expect_eq(IntegerScaling_Scaled_MAX, 510);
+  // Codex review on c-coderdbc #1: a tiny range must not round to 0.
+  EXPECT_GT(Ranges_Tiny_MAX, 0.0f);
+  EXPECT_FLOAT_EQ(Ranges_Tiny_MAX, 1e-10f);
+  EXPECT_FLOAT_EQ(Ranges_Huge_MAX, 1e20f);
+  // Whole but past exact integer range: still a valid float literal.
+  EXPECT_FLOAT_EQ(Ranges_Edge_MAX, 9007199254740992.0f);
+  // Codex review on c-coderdbc #1: double precision, not float (16777216.5f is 16777216).
+  EXPECT_DOUBLE_EQ(Ranges_Precise_MAX, 16777216.5);
+  EXPECT_DOUBLE_EQ(Ranges_Tiny_MAX, 1e-10);
+  EXPECT_DOUBLE_EQ(Rounding_Current_MIN, -3276.8);
+}
