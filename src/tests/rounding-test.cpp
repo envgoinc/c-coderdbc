@@ -74,3 +74,11 @@ TEST(SignalRounding, TenthsRoundTrip)
     expect_eq(ROUNDING_Current_ro_toS(physical), raw);
   }
 }
+
+TEST(SignalRounding, FractionalRangeFromDbc)
+{
+  EXPECT_FLOAT_EQ(Rounding_Voltage_MIN, 0.0f);
+  EXPECT_FLOAT_EQ(Rounding_Voltage_MAX, 6553.5f);
+  EXPECT_FLOAT_EQ(Rounding_Current_MIN, -3276.8f);
+  expect_eq(IntegerScaling_Scaled_MAX, 510);
+}

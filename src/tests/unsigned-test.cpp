@@ -18,3 +18,15 @@ TEST(UnsignedCodec, PackAndUnpack)
   expect_eq(decoded.Temperature_ro, 0);
   expect_eq(UNSIGNED_Temperature_ro_fromS(decoded.Temperature_ro), -40);
 }
+
+TEST(UnsignedCodec, SignalRangeFromDbc)
+{
+  // Physical [min|max] from the DBC, named after the DBC signal.
+  expect_eq(UnsignedStatus_Speed_MIN, 0);
+  expect_eq(UnsignedStatus_Speed_MAX, 255);
+  expect_eq(UnsignedStatus_Temperature_MIN, -40);
+  expect_eq(UnsignedStatus_Temperature_MAX, 215);
+#if defined(Unranged_Raw_MIN) || defined(Unranged_Raw_MAX)
+  FAIL() << "[0|0] means no range and must not emit MIN/MAX";
+#endif
+}

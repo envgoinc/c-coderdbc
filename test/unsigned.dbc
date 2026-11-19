@@ -7,4 +7,7 @@ BO_ 256 UnsignedStatus: 2 Sender
  SG_ Speed : 0|8@1+ (1,0) [0|255] "rpm" Receiver
  SG_ Temperature : 8|8@1+ (1,-40) [-40|215] "degC" Receiver
 
+BO_ 258 Unranged: 1 Sender
+ SG_ Raw : 0|8@1+ (1,0) [0|0] "" Receiver
+
 BO_ 257 Empty: 0 Sender

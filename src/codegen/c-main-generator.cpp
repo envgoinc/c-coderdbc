@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <set>
 #include <regex>
+#include <cmath>
 #include "helpers/formatter.h"
 #include "mon-generator.h"
 #include "config-generator.h"
@@ -30,6 +31,17 @@ const char* extend_func_body =
   "  ubitext_t const m = 1u << (bits - 1);\n"
   "  return (val ^ m) - m;\n"
   "}\n\n";
+
+// A DBC range value as a C literal: an integer when it is whole, otherwise a float constant.
+static std::string PrintRangeValue(double value)
+{
+  if (std::floor(value) == value && std::fabs(value) < 9007199254740992.0)
+  {
+    return std::string(StrPrint("%lld", static_cast<long long>(value)));
+  }
+
+  return prt_double(value, 9);
+}
 
 void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd)
 {
@@ -169,6 +181,23 @@ void CiMainGenerator::Gen_MainHeader()
     fwriter.Append("#define %s_CANID (%#xU)", m.Name.c_str(), m.MsgID);
 
     fwriter.Append("#define %s_CYC (%dU)", m.Name.c_str(), m.Cycle);
+
+    // Physical range of each signal from the DBC [min|max], as <Message>_<Signal>_MIN/_MAX.
+    // [0|0] is the DBC convention for "no range given", so it emits nothing.
+    for (const auto& sig : m.Signals)
+    {
+      if (sig.MinValue == 0 && sig.MaxValue == 0)
+      {
+        continue;
+      }
+
+      // The DBC name: a scaled signal's field carries a "_ro" suffix, but the range is physical.
+      const std::string dbcName = sig.IsSimpleSig ? sig.Name : sig.Name.substr(0, sig.Name.size() - 3);
+      const std::string minText = PrintRangeValue(sig.MinValue);
+      const std::string maxText = PrintRangeValue(sig.MaxValue);
+      fwriter.Append("#define %s_%s_MIN (%s)", m.Name.c_str(), dbcName.c_str(), minText.c_str());
+      fwriter.Append("#define %s_%s_MAX (%s)", m.Name.c_str(), dbcName.c_str(), maxText.c_str());
+    }
 
     size_t max_sig_name_len = 27;
 
