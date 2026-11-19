@@ -82,7 +82,8 @@ Help information with main instructions about using the tool will be printed
 Each signal's physical `[min|max]` from the DBC is emitted beside its message's
 `_CYC` define as `<Message>_<Signal>_MIN` and `<Message>_<Signal>_MAX`, named after the
 DBC signal (without the `_ro` field suffix of a scaled signal). Whole values print as
-integers, others as float constants, e.g. `#define HAWStatus_BusHeldCount_MAX (127)`.
+integers, others as double constants in the shortest form that reads back exactly (`1e-10`,
+`16777216.5`), e.g. `#define HAWStatus_BusHeldCount_MAX (127)`.
 `[0|0]`, the DBC convention for no range, emits nothing. Use them to clamp a value to
 the DBC range in application code instead of repeating the limit.
 

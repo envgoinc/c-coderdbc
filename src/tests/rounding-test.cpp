@@ -87,4 +87,8 @@ TEST(SignalRounding, FractionalRangeFromDbc)
   EXPECT_FLOAT_EQ(Ranges_Huge_MAX, 1e20f);
   // Whole but past exact integer range: still a valid float literal.
   EXPECT_FLOAT_EQ(Ranges_Edge_MAX, 9007199254740992.0f);
+  // Codex review on c-coderdbc #1: double precision, not float (16777216.5f is 16777216).
+  EXPECT_DOUBLE_EQ(Ranges_Precise_MAX, 16777216.5);
+  EXPECT_DOUBLE_EQ(Ranges_Tiny_MAX, 1e-10);
+  EXPECT_DOUBLE_EQ(Rounding_Current_MIN, -3276.8);
 }

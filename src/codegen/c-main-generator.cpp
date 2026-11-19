@@ -35,9 +35,9 @@ const char* extend_func_body =
   "  return (val ^ m) - m;\n"
   "}\n\n";
 
-// A DBC range value as a C literal: an integer when it is whole, otherwise a float constant in
+// A DBC range value as a C literal: an integer when it is whole, otherwise a double constant in
 // the shortest form that reads back as the same double, so a tiny range such as 1e-10 does not
-// round to 0.
+// round to 0 and a value float cannot hold (16777216.5) keeps its precision.
 static std::string PrintRangeValue(double value)
 {
   if (std::floor(value) == value && std::fabs(value) < 9007199254740992.0)
@@ -67,10 +67,10 @@ static std::string PrintRangeValue(double value)
 
   if (text.find_first_of(".eE") == std::string::npos)
   {
-    text += ".0";  // "f" needs a floating literal before it
+    text += ".0";  // a floating literal, not an integer that may not fit
   }
 
-  return text + "f";
+  return text;
 }
 
 void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd)
