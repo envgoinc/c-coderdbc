@@ -84,7 +84,9 @@ Each signal's physical `[min|max]` from the DBC is emitted beside its message's
 DBC signal (without the `_ro` field suffix of a scaled signal). Whole values print as
 integers, others as double constants in the shortest form that reads back exactly (`1e-10`,
 `16777216.5`), e.g. `#define HAWStatus_BusHeldCount_MAX (127)`.
-`[0|0]`, the DBC convention for no range, emits nothing. Use them to clamp a value to
+`[0|0]`, the DBC convention for no range, emits nothing. A name that two message/signal pairs
+flatten to (signal `B_C` in `A`, signal `C` in `A_B`) is not emitted either; the header says
+why and the generator warns. Use them to clamp a value to
 the DBC range in application code instead of repeating the limit.
 
 ## Physical signal conversion

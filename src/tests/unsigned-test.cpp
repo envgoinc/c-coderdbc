@@ -29,4 +29,9 @@ TEST(UnsignedCodec, SignalRangeFromDbc)
 #if defined(Unranged_Raw_MIN) || defined(Unranged_Raw_MAX)
   FAIL() << "[0|0] means no range and must not emit MIN/MAX";
 #endif
+  // Codex review on c-coderdbc #1: Clash.Sig_X and Clash_Sig.X both flatten to Clash_Sig_X; neither
+  // may be emitted, or one would silently take the other's limit.
+#if defined(Clash_Sig_X_MIN) || defined(Clash_Sig_X_MAX)
+  FAIL() << "an ambiguous range name must not be emitted";
+#endif
 }

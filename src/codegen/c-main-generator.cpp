@@ -9,6 +9,8 @@
 #include <set>
 #include <regex>
 #include <cmath>
+#include <vector>
+#include <map>
 #include <locale>
 #include <iomanip>
 #include <sstream>
@@ -71,6 +73,17 @@ static std::string PrintRangeValue(double value)
   }
 
   return text;
+}
+
+// The DBC name of a signal: a scaled signal's field carries a "_ro" suffix, but its range is physical.
+static std::string DbcSignalName(const SignalDescriptor_t& sig)
+{
+  return sig.IsSimpleSig ? sig.Name : sig.Name.substr(0, sig.Name.size() - 3);
+}
+
+static bool HasRange(const SignalDescriptor_t& sig)
+{
+  return !(sig.MinValue == 0 && sig.MaxValue == 0);  // [0|0]: the DBC convention for no range
 }
 
 void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd)
@@ -194,6 +207,21 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter.Append("#endif");
   fwriter.Append(2);
 
+  // <Message>_<Signal> range names, and the message.signal pairs that make each one. Two pairs can
+  // flatten to the same name (signal B_C in A, signal C in A_B); such a name is not emitted.
+  std::map<std::string, std::vector<std::string>> rangeOwners;
+
+  for (const auto* expr : sigprt.sigs_expr)
+  {
+    for (const auto& sig : expr->msg.Signals)
+    {
+      if (HasRange(sig))
+      {
+        rangeOwners[expr->msg.Name + "_" + DbcSignalName(sig)].push_back(expr->msg.Name + "." + DbcSignalName(sig));
+      }
+    }
+  }
+
   for (size_t num = 0u; num < sigprt.sigs_expr.size(); num++)
   {
     // write message typedef s and additional expressions
@@ -213,20 +241,42 @@ void CiMainGenerator::Gen_MainHeader()
     fwriter.Append("#define %s_CYC (%dU)", m.Name.c_str(), m.Cycle);
 
     // Physical range of each signal from the DBC [min|max], as <Message>_<Signal>_MIN/_MAX.
-    // [0|0] is the DBC convention for "no range given", so it emits nothing.
     for (const auto& sig : m.Signals)
     {
-      if (sig.MinValue == 0 && sig.MaxValue == 0)
+      if (!HasRange(sig))
       {
         continue;
       }
 
-      // The DBC name: a scaled signal's field carries a "_ro" suffix, but the range is physical.
-      const std::string dbcName = sig.IsSimpleSig ? sig.Name : sig.Name.substr(0, sig.Name.size() - 3);
+      const std::string dbcName = DbcSignalName(sig);
+      const std::string rangeName = m.Name + "_" + dbcName;
+      const std::vector<std::string>& owners = rangeOwners[rangeName];
+
+      if (owners.size() > 1)
+      {
+        // Ambiguous: a use fails to compile instead of silently getting another signal's limit.
+        std::string list;
+
+        for (const auto& owner : owners)
+        {
+          list += (list.empty() ? "" : ", ") + owner;
+        }
+
+        fwriter.Append("// %s_MIN/_MAX not emitted: the name is shared by %s", rangeName.c_str(), list.c_str());
+
+        if (owners.front() == m.Name + "." + dbcName)
+        {
+          std::cerr << "coderdbc: range defines " << rangeName << "_MIN/_MAX not emitted, ambiguous: "
+                    << list << std::endl;
+        }
+
+        continue;
+      }
+
       const std::string minText = PrintRangeValue(sig.MinValue);
       const std::string maxText = PrintRangeValue(sig.MaxValue);
-      fwriter.Append("#define %s_%s_MIN (%s)", m.Name.c_str(), dbcName.c_str(), minText.c_str());
-      fwriter.Append("#define %s_%s_MAX (%s)", m.Name.c_str(), dbcName.c_str(), maxText.c_str());
+      fwriter.Append("#define %s_MIN (%s)", rangeName.c_str(), minText.c_str());
+      fwriter.Append("#define %s_MAX (%s)", rangeName.c_str(), maxText.c_str());
     }
 
     size_t max_sig_name_len = 27;
