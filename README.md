@@ -85,8 +85,9 @@ DBC signal (without the `_ro` field suffix of a scaled signal). Whole values pri
 integers, others as double constants in the shortest form that reads back exactly (`1e-10`,
 `16777216.5`), e.g. `#define HAWStatus_BusHeldCount_MAX (127)`.
 `[0|0]`, the DBC convention for no range, emits nothing. A name that two message/signal pairs
-flatten to (signal `B_C` in `A`, signal `C` in `A_B`), or that a value-table define already
-uses (`<Signal>_<Message>_MIN`), is not emitted either; the header says
+flatten to (signal `B_C` in `A`, signal `C` in `A_B`), or that another generated define
+already uses (a value table `<Signal>_<Message>_MIN`, or the minor version `VER_<DRV>_MIN`), is
+not emitted either; the header says
 why and the generator warns. Use them to clamp a value to
 the DBC range in application code instead of repeating the limit.
 

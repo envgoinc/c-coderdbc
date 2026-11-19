@@ -38,4 +38,10 @@ TEST(UnsignedCodec, SignalRangeFromDbc)
   // value-table defines keep their values and the range [1|2] is not emitted over them.
   expect_eq(Vt_Vt_MIN, 0);
   expect_eq(Vt_Vt_MAX, 3);
+  // Codex review on c-coderdbc #1: message VER, signal UNSIGNED would make VER_UNSIGNED_MIN, the
+  // driver's minor-version define; the version keeps its value and the range [3|9] is not emitted.
+  expect_eq(VER_UNSIGNED_MIN, 0);
+#if defined(VER_UNSIGNED_MAX)
+  FAIL() << "a range clashing with the version define must not be emitted";
+#endif
 }

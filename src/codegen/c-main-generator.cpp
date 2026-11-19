@@ -209,10 +209,11 @@ void CiMainGenerator::Gen_MainHeader()
 
   // <Message>_<Signal> range names, and the message.signal pairs that make each one. Two pairs can
   // flatten to the same name (signal B_C in A, signal C in A_B); such a name is not emitted.
-  // Value-table defines (<Signal>_<Message>_<Value>, #ifndef-guarded) are collected too: a range
-  // define with the same name would silently replace a table value, so it is not emitted.
+  // Names this header already defines that a range name could equal: value-table defines
+  // (<Signal>_<Message>_<Value>, #ifndef-guarded) and the version defines (VER_<DRV>_MIN is the
+  // minor version). A range define with one of them would silently replace it, so it is not emitted.
   std::map<std::string, std::vector<std::string>> rangeOwners;
-  std::set<std::string> valueTableNames;
+  std::set<std::string> takenNames = { fdesc->gen.verhigh_def, fdesc->gen.verlow_def };
 
   for (const auto* expr : sigprt.sigs_expr)
   {
@@ -225,7 +226,7 @@ void CiMainGenerator::Gen_MainHeader()
 
       for (const auto& value : sig.ValDefs.vpairs)
       {
-        valueTableNames.insert(sig.Name + "_" + expr->msg.Name + "_" + value.first);
+        takenNames.insert(sig.Name + "_" + expr->msg.Name + "_" + value.first);
       }
     }
   }
@@ -268,9 +269,9 @@ void CiMainGenerator::Gen_MainHeader()
           clash += (clash.empty() ? "the name is shared by " : ", ") + owner;
         }
       }
-      else if (valueTableNames.count(rangeName + "_MIN") || valueTableNames.count(rangeName + "_MAX"))
+      else if (takenNames.count(rangeName + "_MIN") || takenNames.count(rangeName + "_MAX"))
       {
-        clash = "a value-table define has the name";
+        clash = "another generated define (value table or version) has the name";
       }
 
       if (!clash.empty())
