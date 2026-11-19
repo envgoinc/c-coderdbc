@@ -77,6 +77,15 @@ Help information with main instructions about using the tool will be printed
   There are several available generation option, use '-help' option for details
 
 
+## Signal ranges
+
+Each signal's physical `[min|max]` from the DBC is emitted beside its message's
+`_CYC` define as `<Message>_<Signal>_MIN` and `<Message>_<Signal>_MAX`, named after the
+DBC signal (without the `_ro` field suffix of a scaled signal). Whole values print as
+integers, others as float constants, e.g. `#define HAWStatus_BusHeldCount_MAX (127)`.
+`[0|0]`, the DBC convention for no range, emits nothing. Use them to clamp a value to
+the DBC range in application code instead of repeating the limit.
+
 ## Physical signal conversion
 
 With `<DRIVER>_USE_SIGFLOAT` enabled, pack functions read `_phys` fields and
