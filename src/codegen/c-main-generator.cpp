@@ -209,7 +209,10 @@ void CiMainGenerator::Gen_MainHeader()
 
   // <Message>_<Signal> range names, and the message.signal pairs that make each one. Two pairs can
   // flatten to the same name (signal B_C in A, signal C in A_B); such a name is not emitted.
+  // Value-table defines (<Signal>_<Message>_<Value>, #ifndef-guarded) are collected too: a range
+  // define with the same name would silently replace a table value, so it is not emitted.
   std::map<std::string, std::vector<std::string>> rangeOwners;
+  std::set<std::string> valueTableNames;
 
   for (const auto* expr : sigprt.sigs_expr)
   {
@@ -218,6 +221,11 @@ void CiMainGenerator::Gen_MainHeader()
       if (HasRange(sig))
       {
         rangeOwners[expr->msg.Name + "_" + DbcSignalName(sig)].push_back(expr->msg.Name + "." + DbcSignalName(sig));
+      }
+
+      for (const auto& value : sig.ValDefs.vpairs)
+      {
+        valueTableNames.insert(sig.Name + "_" + expr->msg.Name + "_" + value.first);
       }
     }
   }
@@ -251,23 +259,28 @@ void CiMainGenerator::Gen_MainHeader()
       const std::string dbcName = DbcSignalName(sig);
       const std::string rangeName = m.Name + "_" + dbcName;
       const std::vector<std::string>& owners = rangeOwners[rangeName];
+      std::string clash;
 
       if (owners.size() > 1)
       {
-        // Ambiguous: a use fails to compile instead of silently getting another signal's limit.
-        std::string list;
-
         for (const auto& owner : owners)
         {
-          list += (list.empty() ? "" : ", ") + owner;
+          clash += (clash.empty() ? "the name is shared by " : ", ") + owner;
         }
+      }
+      else if (valueTableNames.count(rangeName + "_MIN") || valueTableNames.count(rangeName + "_MAX"))
+      {
+        clash = "a value-table define has the name";
+      }
 
-        fwriter.Append("// %s_MIN/_MAX not emitted: the name is shared by %s", rangeName.c_str(), list.c_str());
+      if (!clash.empty())
+      {
+        // A use fails to compile instead of silently getting another value.
+        fwriter.Append("// %s_MIN/_MAX not emitted: %s", rangeName.c_str(), clash.c_str());
 
         if (owners.front() == m.Name + "." + dbcName)
         {
-          std::cerr << "coderdbc: range defines " << rangeName << "_MIN/_MAX not emitted, ambiguous: "
-                    << list << std::endl;
+          std::cerr << "coderdbc: range defines " << rangeName << "_MIN/_MAX not emitted: " << clash << std::endl;
         }
 
         continue;

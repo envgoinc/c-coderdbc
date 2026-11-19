@@ -16,4 +16,9 @@ BO_ 259 Clash: 1 Sender
 BO_ 260 Clash_Sig: 1 Sender
  SG_ X : 0|8@1+ (1,0) [0|20] "" Receiver
 
+BO_ 261 Vt: 1 Sender
+ SG_ Vt : 0|8@1+ (1,0) [1|2] "" Receiver
+
 BO_ 257 Empty: 0 Sender
+
+VAL_ 261 Vt 0 "MIN" 3 "MAX" ;

@@ -34,4 +34,8 @@ TEST(UnsignedCodec, SignalRangeFromDbc)
 #if defined(Clash_Sig_X_MIN) || defined(Clash_Sig_X_MAX)
   FAIL() << "an ambiguous range name must not be emitted";
 #endif
+  // Codex review on c-coderdbc #1: signal Vt in message Vt has values "MIN" and "MAX"; the
+  // value-table defines keep their values and the range [1|2] is not emitted over them.
+  expect_eq(Vt_Vt_MIN, 0);
+  expect_eq(Vt_Vt_MAX, 3);
 }
