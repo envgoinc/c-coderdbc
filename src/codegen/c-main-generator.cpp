@@ -9,6 +9,9 @@
 #include <set>
 #include <regex>
 #include <cmath>
+#include <locale>
+#include <iomanip>
+#include <sstream>
 #include "helpers/formatter.h"
 #include "mon-generator.h"
 #include "config-generator.h"
@@ -32,7 +35,9 @@ const char* extend_func_body =
   "  return (val ^ m) - m;\n"
   "}\n\n";
 
-// A DBC range value as a C literal: an integer when it is whole, otherwise a float constant.
+// A DBC range value as a C literal: an integer when it is whole, otherwise a float constant in
+// the shortest form that reads back as the same double, so a tiny range such as 1e-10 does not
+// round to 0.
 static std::string PrintRangeValue(double value)
 {
   if (std::floor(value) == value && std::fabs(value) < 9007199254740992.0)
@@ -40,7 +45,32 @@ static std::string PrintRangeValue(double value)
     return std::string(StrPrint("%lld", static_cast<long long>(value)));
   }
 
-  return prt_double(value, 9);
+  std::string text;
+
+  for (int precision = 1; precision <= 17; precision++)
+  {
+    std::ostringstream out;
+    out.imbue(std::locale::classic());
+    out << std::setprecision(precision) << value;
+    text = out.str();
+
+    std::istringstream in(text);
+    in.imbue(std::locale::classic());
+    double parsed = 0;
+    in >> parsed;
+
+    if (parsed == value)
+    {
+      break;
+    }
+  }
+
+  if (text.find_first_of(".eE") == std::string::npos)
+  {
+    text += ".0";  // "f" needs a floating literal before it
+  }
+
+  return text + "f";
 }
 
 void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd)
